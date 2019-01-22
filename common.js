@@ -1,3 +1,5 @@
+const API_URL = 'http://localhost:3000/shop_lists/1';
+
 let addNewInput = document.getElementById("new-item-input"),
     addNewBtn = document.getElementById("new-item-btn"),
     listWrapper = document.getElementById("list-wrapper");
@@ -25,3 +27,38 @@ function generateNewItem(name) {
   li.append(wrapper);
   return li;
 }
+
+
+function getList() {
+  fetch(API_URL, {mode: 'cors'})
+    .then(function(response) {
+      if (!response.ok) {
+        throw Error(response.statusText);
+      }
+      return response.json();
+     })
+    .then(function(list) {
+      console.log(list);
+    })
+    .catch(function(error) {
+        console.log(error);
+    });
+}
+
+getList();
+
+
+function createList(title) {
+  let listTitle = {title: "title"};
+
+  fetch("http://localhost:3000/shop_lists", {
+    method: "POST", 
+    body: JSON.stringify(listTitle)
+  }).then(res => {
+    console.log("Request complete! response:");
+  }).then(function(listId) {
+    console.log(listId);
+  });
+}
+
+createList("olekl");
