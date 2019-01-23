@@ -128,10 +128,4 @@ function getList(id, listObj) {
 // createList("olekl");
 
 
-// var x = new List(1);
-
-
-let router = new Router([
-  new Route('home', 'home.html', true),
-  new Route('list', 'list.html')
-]);
+var x = new List(1);
