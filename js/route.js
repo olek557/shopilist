@@ -1,33 +1,15 @@
 'use strict'
 
-function Router(routes) {
-  this.constructor(routes);
-  this.init();
+function Route(name, htmlName, defaultRoute) {
+  this.constructor(name, htmlName, defaultRoute);
 }
 
-Router.prototype.constructor = function() {
-  this.routes = routes;
-  this.rootElement = document.getElementById('app');
+Route.prototype.constructor = function(name, htmlName, defaultRoute) {
+  this.name = name;
+  this.htmlName = htmlName;
+  this.defaultRoute = defaultRoute;
 }
 
-Router.prototype.init = function() {
-  let r = this.routes;
-  (function(scope, r) {
-    window.addEventListener('hashchange', e => {
-      scope.hasChanged(scope, r);
-    });
-  })(this, r)
-}
-
-Router.prototype.hasChanged = function(scope, r) {
-  if(window.location.hash.length > 0) {
-    console.log(window.location.hash);
-  }
-}
-
-Router.prototype.goToRoute = function(htmlName) {
-  (function(scope) {
-    let url = 'views/' + htmlName;
-    console.log(url);
-  })(this);
+Route.prototype.isActiveRoute = function(hashedPath) {
+  return hashedPath.replace('#', '') === this.name;
 }

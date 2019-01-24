@@ -1,6 +1,7 @@
 'use strict'
 
-const API_URL = 'http://68.183.12.15:3000/shop_lists';
+const API_URL = 'http://68.183.12.15:3000/shop_lists',
+      ORIGIN_URL = window.location.origin;
 let currentList;
 
 function List(id) {
@@ -20,13 +21,13 @@ List.prototype = {
     this.title = title;
     this.createAt = createAt;
     this.updateAt = updateAt;
+    this.list = [];
   },
   getListItems: function() {
     getList(this.id, this);
   },
   generateNewList: function(title, listObj) {
     let listTitle = {'title': title};
-
     fetch(API_URL, {
       method: "POST", 
       body: JSON.stringify(listTitle),
@@ -35,44 +36,62 @@ List.prototype = {
       console.log("Request complete! response:", response);
       return response.json();
     }).then(function(listId) {
-      console.log(listId);
+      console.log('listId', listId);
       listObj.title = listId.title;
       listObj.createAt = listId.created_at;
       listObj.updateAt = listId.updated_at;
       listObj.title = listId.title;
       listObj.id = listId.id;
+      listObj.list = listId.items;
+      window.location.href = ORIGIN_URL + '/#list:'+ listObj.id;
+    });
+  },
+  generateHtmlList: function() {
+    let listWrapper = document.getElementById('list-wrapper');
+    currentList.list.forEach((listItem) => {
+      // console.log(listItem);
+      listWrapper.append(generateNewItem(listItem));
+    });
+  },
+  addNewItem: function(name, status) {
+    let listItem = {'name': name, 'status': status};
+    fetch(API_URL + '/' + currentList.id + '/items', {
+      method: "POST", 
+      body: JSON.stringify(listItem),
+      headers: new Headers({'content-type': 'application/json'})
+    }).then(response => {
+      console.log("Request complete! response:", response);
+      return response.json();
     });
   }
 }
 
 
-let addNewInput = document.getElementById("new-item-input"),
-    addNewBtn = document.getElementById("new-item-btn"),
-    listWrapper = document.getElementById("list-wrapper"),
-    generateList = document.getElementById("generate-list"),
-    newListTitle = document.getElementById("new-list-title");
-
-if(addNewBtn) {
-  addNewBtn.addEventListener("click", () => {
+document.body.addEventListener("click", ({target}) => {
+  if(target == document.getElementById("new-item-btn")) {
+    let addNewInput = document.getElementById("new-item-input"),
+        listWrapper = document.getElementById("list-wrapper");
     if(addNewInput.value) {
-      listWrapper.append(generateNewItem(addNewInput.value));
+      listWrapper.append(generateNewItem({"name": addNewInput.value, "status": false}));
     }
+    currentList.addNewItem(addNewInput.value, false);
     addNewInput.value = '';
-  });
-}
+  }
+});
 
-if(generateList) {
-  generateList.addEventListener("click", () => {
-    if(newListTitle.value) {
+document.body.addEventListener("click", ({target}) => {
+  if(target == document.getElementById("generate-list")) {
+    let newListTitle = document.getElementById("new-list-title");
+    if(document.getElementById("new-list-title").value) {
       currentList = new List();
       currentList.generateNewList(newListTitle.value, currentList);
     }
     newListTitle.value = '';
-  });
-}
+  }
+});
 
 
-function generateNewItem(name) {
+function generateNewItem({name, value}) {
   let li = document.createElement('li'),
       wrapper = document.createElement('label'),
       input = document.createElement('input'),
@@ -99,7 +118,14 @@ function getList(id, listObj) {
      })
     .then(function(list) {
       console.log(list);
-      listObj.listItems = list;
+      listObj.title = list.title;
+      listObj.createAt = list.created_at;
+      listObj.updateAt = list.updated_at;
+      listObj.title = list.title;
+      listObj.id = list.id;
+      listObj.list = list.items;
+      listObj.listFullObj= list;
+      listObj.generateHtmlList();
     })
     .catch(function(error) {
         console.log(error);
@@ -129,3 +155,10 @@ function getList(id, listObj) {
 
 
 var x = new List(1);
+
+
+
+let router = new Router([
+  new Route('home', 'home.html', true),
+  new Route('list', 'list.html')
+]);
