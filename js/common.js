@@ -14,7 +14,6 @@ List.prototype = {
   createAt: undefined,
   updateAt: undefined,
   title: undefined,
-
   listItems: {},
   constructor: function(id, title, createAt, updateAt) {
     this.id = id;
@@ -49,7 +48,6 @@ List.prototype = {
   generateHtmlList: function() {
     let listWrapper = document.getElementById('list-wrapper');
     currentList.list.forEach((listItem) => {
-      // console.log(listItem);
       listWrapper.append(generateNewItem(listItem));
     });
   },
@@ -62,6 +60,18 @@ List.prototype = {
     }).then(response => {
       console.log("Request complete! response:", response);
       return response.json();
+    }).then(function(response) {
+      console.log("Request complete! response:", response);
+    });
+  },
+  updateListItem: function(name, status, id) {
+    let listItem = {'name': name, 'status': status};
+    fetch(API_URL + '/' + currentList.id + '/items/' + id, {
+      method: "PUT", 
+      body: JSON.stringify(listItem),
+      headers: new Headers({'content-type': 'application/json'})
+    }).then(response => {
+      console.log("Request complete!");
     });
   }
 }
@@ -90,8 +100,17 @@ document.body.addEventListener("click", ({target}) => {
   }
 });
 
+document.body.addEventListener("change", (event) => {
+  let target = event.target.closest('.checkbox')
+  if(target) {
+    let id = target.id,
+        name = target.querySelector('.checkbox__label').innerText,
+        status = target.querySelector('input').checked;
+    currentList.updateListItem(name, status, id);
+  }
+});
 
-function generateNewItem({name, value}) {
+function generateNewItem({name, status, id}) {
   let li = document.createElement('li'),
       wrapper = document.createElement('label'),
       input = document.createElement('input'),
@@ -99,8 +118,10 @@ function generateNewItem({name, value}) {
   label.classList.add('checkbox__label');
   label.innerHTML = name;
   input.setAttribute('type', 'checkbox');
+  input.checked = status;
   wrapper.classList.add('checkbox');
   wrapper.append(input, label);
+  wrapper.setAttribute('id', id);
   li.classList.add('list__item');
   li.append(wrapper);
   return li;
@@ -132,31 +153,6 @@ function getList(id, listObj) {
     }
   );
 }
-
-// getList();
-
-
-// function createList(title) {
-//   let listTitle = {title: title};
-
-//   fetch("http://localhost:3000/shop_lists", {
-//     method: "POST", 
-//     body: JSON.stringify(listTitle),
-//     headers: new Headers({'content-type': 'application/json'})
-//   }).then(response => {
-//     console.log("Request complete! response:", response);
-//     return response.json();
-//   }).then(function(listId) {
-//     console.log(listId);
-//   });
-// }
-
-// createList("olekl");
-
-
-var x = new List(1);
-
-
 
 let router = new Router([
   new Route('home', 'home.html', true),
