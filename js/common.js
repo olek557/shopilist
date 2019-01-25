@@ -52,6 +52,7 @@ List.prototype = {
     });
   },
   addNewItem: function(name, status) {
+    let listWrapper = document.getElementById('list-wrapper');
     let listItem = {'name': name, 'status': status};
     fetch(API_URL + '/' + currentList.id + '/items', {
       method: "POST", 
@@ -60,8 +61,9 @@ List.prototype = {
     }).then(response => {
       console.log("Request complete! response:", response);
       return response.json();
-    }).then(function(response) {
-      console.log("Request complete! response:", response);
+    }).then(function(item) {
+      console.log("Request complete! response:", item.id);
+      listWrapper.append(generateNewItem(item));
     });
   },
   updateListItem: function(name, status, id) {
@@ -82,9 +84,8 @@ document.body.addEventListener("click", ({target}) => {
     let addNewInput = document.getElementById("new-item-input"),
         listWrapper = document.getElementById("list-wrapper");
     if(addNewInput.value) {
-      listWrapper.append(generateNewItem({"name": addNewInput.value, "status": false}));
+      currentList.addNewItem(addNewInput.value, false);
     }
-    currentList.addNewItem(addNewInput.value, false);
     addNewInput.value = '';
   }
 });
