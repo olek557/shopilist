@@ -26,18 +26,15 @@ Router.prototype.hasChanged = function() {
       if(route.isActiveRoute(path)) {
         this.goToRoute(route.htmlName);
         currentList = new List(listId);
-        currentList.getListItems();
-        currentList.generateHtmlList();
       }
     });
   }
   else {
+    console.log('hereee');
     this.routes.forEach((route) => {
       if(route.defaultRoute) {
         this.goToRoute(route.htmlName);
-        currentList = new List(listId);
-        currentList.getListItems();
-        currentList.generateHtmlList();
+        getAllUserLists();
       }
     });
   }

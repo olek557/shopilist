@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'Montserrat';
+  src: url(./Montserrat.woff2) format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
 * { 
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -12,11 +19,11 @@ body {
 }
 
 .header {
-  height: 50px;
+  height: 100px;
 }
 
-.main {
-  padding-top: 50px;
+.header + * {
+  margin-top: 50px;
 }
 
 .btn {
@@ -42,9 +49,10 @@ body {
   color: #fff;
 }
 
-
 .container {
   margin: 0 auto;
+  max-width: 900px;
+  padding: 0 30px;
   display: -webkit-flex;
   display: -moz-flex;
   display: -ms-flex;
@@ -55,10 +63,12 @@ body {
   -ms-flex-direction: column;
   -o-flex-direction: column;
   flex-direction: column;
+  position: relative;
 }
 
 .container--tiny {
   max-width: 300px;
+  padding: 0;
 }
 
 .container--center {
@@ -69,7 +79,6 @@ body {
   margin-top: 20px;
 }
 
-
 .list {
   padding: 0;
   margin: 0;
@@ -77,16 +86,24 @@ body {
 }
 
 .list--links {
+  list-style-type: disc;
+  padding-left: 20px;
+}
 
+.list--links .list__item + .list__item {
+  margin-top: 5px;
 }
 
 .link { 
   text-decoration: none;
   color: #34515e;
+  cursor: pointer;
 }
 
 .link__additional {
-  font-size: 12px;
+  font-size: 11px;
+  color: rgba(0, 0, 0, .3);
+  margin-left: 5px;
 }
 
 .checkbox {
@@ -146,4 +163,48 @@ body {
 
 .form-control + * {
   margin-top: 20px;
+}
+
+.close-list {
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+  -ms-transform: translate(0, -50%);
+  -o-transform: translate(0, -50%);
+  transform: translate(0, -50%);
+}
+
+.close-list:after {
+  content: '';
+  width: 15px;
+  position: absolute;
+  height: 1px;
+  background: #333;
+  -webkit-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  bottom: 50%;
+  left: 0;
+}
+
+.close-list:before {
+  content: '';
+  width: 15px;
+  position: absolute;
+  height: 1px;
+  background: #333;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+  bottom: 50%;
+  left: 0;
+}
+
+.footer {
+  height: 50px;
 }

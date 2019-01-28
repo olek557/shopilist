@@ -2,68 +2,95 @@
 
 const API_URL = 'http://68.183.12.15:3000/shop_lists',
       ORIGIN_URL = window.location.origin;
-let currentList;
+let currentList,
+    allLists;
 
-function List(id) {
-  this.constructor(id);
+function List(id, title) {
+  this.constructor(id, title);
 }
 
 List.prototype = {
-  id: undefined,
-  title: undefined,
-  createAt: undefined,
-  updateAt: undefined,
-  title: undefined,
   listItems: {},
-  constructor: function(id, title, createAt, updateAt) {
-    this.id = id;
-    this.title = title;
-    this.createAt = createAt;
-    this.updateAt = updateAt;
-    this.list = [];
+  constructor: function(id, title) {
+    if(id) {
+      this.getList(id);
+    }
+    else {
+      this.generateList(title);
+    }
   },
-  getListItems: function() {
-    getList(this.id, this);
+  getList: function(id) {
+    const link = API_URL + '/' + id;
+    fetch(link, {mode: 'cors'})
+      .then(function(response) {
+        if (!response.ok) {
+          throw Error(response.statusText);
+        }
+        return response.json();
+       })
+      .then((list) => {
+        this.restructurisingListObject(list);
+        this.insertList();
+      })
+      .catch((error) => {
+        console.log(error);
+      }
+    );
   },
-  generateNewList: function(title, listObj) {
+  generateList: function(title) {
     let listTitle = {'title': title};
     fetch(API_URL, {
       method: "POST", 
       body: JSON.stringify(listTitle),
       headers: new Headers({'content-type': 'application/json'})
-    }).then(response => {
-      console.log("Request complete! response:", response);
+    }).then((response) => {
+      if (!response.ok) {
+        throw Error(response.statusText);
+      }
       return response.json();
-    }).then(function(listId) {
-      console.log('listId', listId);
-      listObj.title = listId.title;
-      listObj.createAt = listId.created_at;
-      listObj.updateAt = listId.updated_at;
-      listObj.title = listId.title;
-      listObj.id = listId.id;
-      listObj.list = listId.items;
-      window.location.href = ORIGIN_URL + '/#list:'+ listObj.id;
+    }).then(list => {
+      this.restructurisingListObject(list);
+      window.location.href = ORIGIN_URL + '/#list:'+ list.id;
+    })
+    .catch(error => {
+      console.log(error);
     });
   },
-  generateHtmlList: function() {
+  restructurisingListObject: function(listObject) {
+    this.title = listObject.title;
+    this.createAt = listObject.created_at;
+    this.updateAt = listObject.updated_at;
+    this.title = listObject.title;
+    this.id = listObject.id;
+    this.list = listObject.items;
+    this.listFullObj= listObject;
+  },
+  insertList: function() {
     let listWrapper = document.getElementById('list-wrapper');
-    currentList.list.forEach((listItem) => {
+    if(this.title) {
+      document.getElementById('list-name').innerHTML = this.title;
+    }
+    this.list.forEach((listItem) => {
       listWrapper.append(generateNewItem(listItem));
     });
   },
   addNewItem: function(name, status) {
-    let listWrapper = document.getElementById('list-wrapper');
-    let listItem = {'name': name, 'status': status};
+    let listWrapper = document.getElementById('list-wrapper'),
+        listItem = {'name': name, 'status': status};
     fetch(API_URL + '/' + currentList.id + '/items', {
       method: "POST", 
       body: JSON.stringify(listItem),
       headers: new Headers({'content-type': 'application/json'})
     }).then(response => {
-      console.log("Request complete! response:", response);
+      if (!response.ok) {
+        throw Error(response.statusText);
+      }
       return response.json();
     }).then(function(item) {
-      console.log("Request complete! response:", item.id);
       listWrapper.append(generateNewItem(item));
+    })
+    .catch(error => {
+      console.log(error);
     });
   },
   updateListItem: function(name, status, id) {
@@ -72,12 +99,9 @@ List.prototype = {
       method: "PUT", 
       body: JSON.stringify(listItem),
       headers: new Headers({'content-type': 'application/json'})
-    }).then(response => {
-      console.log("Request complete!");
     });
   }
 }
-
 
 document.body.addEventListener("click", ({target}) => {
   if(target == document.getElementById("new-item-btn")) {
@@ -92,12 +116,11 @@ document.body.addEventListener("click", ({target}) => {
 
 document.body.addEventListener("click", ({target}) => {
   if(target == document.getElementById("generate-list")) {
-    let newListTitle = document.getElementById("new-list-title");
-    if(document.getElementById("new-list-title").value) {
-      currentList = new List();
-      currentList.generateNewList(newListTitle.value, currentList);
+    let newListTitle = document.getElementById("new-list-title").value;
+    if(newListTitle) {
+      currentList = new List(false, newListTitle);
     }
-    newListTitle.value = '';
+    newListTitle = '';
   }
 });
 
@@ -128,9 +151,8 @@ function generateNewItem({name, status, id}) {
   return li;
 }
 
-
-function getList(id, listObj) {
-  const link = API_URL + '/' + id;
+function getAllUserLists() {
+  const link = API_URL;
   fetch(link, {mode: 'cors'})
     .then(function(response) {
       if (!response.ok) {
@@ -138,24 +160,50 @@ function getList(id, listObj) {
       }
       return response.json();
      })
-    .then(function(list) {
-      console.log(list);
-      listObj.title = list.title;
-      listObj.createAt = list.created_at;
-      listObj.updateAt = list.updated_at;
-      listObj.title = list.title;
-      listObj.id = list.id;
-      listObj.list = list.items;
-      listObj.listFullObj= list;
-      listObj.generateHtmlList();
+    .then((lists) => {
+      allLists = lists;
+      insertLists(lists);
     })
-    .catch(function(error) {
-        console.log(error);
+    .catch((error) => {
+      console.log(error);
     }
   );
+}
+
+function insertLists(lists) {
+  let listsWrapper = document.getElementById('lists-wrapper'),
+      ul = document.createElement('ul');
+      ul.classList.add('list', 'list--links');
+  lists.forEach(list => {
+    let li = document.createElement('li'),
+        link = document.createElement('a'),
+        linkAdditional = document.createElement('span');
+    li.classList.add('list__item');
+    link.classList.add('link');
+    linkAdditional.classList.add('link__additional');
+    link.innerHTML = list.title;
+    link.setAttribute('href', '/#list:' + list.id);
+
+    linkAdditional.innerHTML = '(' +(new Date(list.created_at)).toLocaleDateString() + ')';
+    li.append(link, linkAdditional);
+    ul.append(li);
+  });
+  listsWrapper.append(ul);
 }
 
 let router = new Router([
   new Route('home', 'home.html', true),
   new Route('list', 'list.html')
 ]);
+
+document.body.addEventListener("click", ({target}) => {
+  if(target == document.querySelector('.copy-link-btn')) {
+    var dummy = document.createElement('input'),
+        text = window.location.href;
+    document.body.appendChild(dummy);
+    dummy.value = text;
+    dummy.select();
+    document.execCommand('copy');
+    document.body.removeChild(dummy);
+  }
+});
