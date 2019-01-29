@@ -1,6 +1,7 @@
 'use strict'
 
-const API_URL = 'http://68.183.12.15:3000/shop_lists',
+// const API_URL = 'http://68.183.12.15:3000/shop_lists',
+const API_URL = 'http://127.0.0.1:3000/shop_lists',
       ORIGIN_URL = window.location.origin;
 let currentList,
     allLists;
@@ -156,6 +157,10 @@ function getAllUserLists() {
   fetch(link, {mode: 'cors'})
     .then(function(response) {
       if (!response.ok) {
+        if (response.statusText == 'Unauthorized') {
+          router.goToRoute('sign_in');
+          return false;
+        }
         throw Error(response.statusText);
       }
       return response.json();
@@ -174,26 +179,30 @@ function insertLists(lists) {
   let listsWrapper = document.getElementById('lists-wrapper'),
       ul = document.createElement('ul');
       ul.classList.add('list', 'list--links');
-  lists.forEach(list => {
-    let li = document.createElement('li'),
-        link = document.createElement('a'),
-        linkAdditional = document.createElement('span');
-    li.classList.add('list__item');
-    link.classList.add('link');
-    linkAdditional.classList.add('link__additional');
-    link.innerHTML = list.title;
-    link.setAttribute('href', '/#list:' + list.id);
+  if(lists) {
+    lists.forEach(list => {
+      let li = document.createElement('li'),
+          link = document.createElement('a'),
+          linkAdditional = document.createElement('span');
+      li.classList.add('list__item');
+      link.classList.add('link');
+      linkAdditional.classList.add('link__additional');
+      link.innerHTML = list.title;
+      link.setAttribute('href', '/#list:' + list.id);
 
-    linkAdditional.innerHTML = '(' +(new Date(list.created_at)).toLocaleDateString() + ')';
-    li.append(link, linkAdditional);
-    ul.append(li);
-  });
-  listsWrapper.append(ul);
+      linkAdditional.innerHTML = '(' +(new Date(list.created_at)).toLocaleDateString() + ')';
+      li.append(link, linkAdditional);
+      ul.append(li);
+    });
+    listsWrapper.append(ul);
+  }
 }
 
 let router = new Router([
   new Route('home', 'home.html', true),
-  new Route('list', 'list.html')
+  new Route('list', 'list.html'),
+  new Route('login', 'sign_in.html'),
+  new Route('sign_up', 'sign_up.html')
 ]);
 
 document.body.addEventListener("click", ({target}) => {

@@ -30,7 +30,6 @@ Router.prototype.hasChanged = function() {
     });
   }
   else {
-    console.log('hereee');
     this.routes.forEach((route) => {
       if(route.defaultRoute) {
         this.goToRoute(route.htmlName);
