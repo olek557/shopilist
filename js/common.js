@@ -1,7 +1,7 @@
 'use strict'
 
 // const API_URL = 'http://68.183.12.15:3000/shop_lists',
-const API_URL = 'http://127.0.0.1:3000/shop_lists',
+const API_URL = 'http://127.0.0.1:3000',
       ORIGIN_URL = window.location.origin;
 let currentList,
     allLists;
@@ -21,7 +21,7 @@ List.prototype = {
     }
   },
   getList: function(id) {
-    const link = API_URL + '/' + id;
+    const link = API_URL + '/shop_lists' + '/' + id;
     fetch(link, {mode: 'cors'})
       .then(function(response) {
         if (!response.ok) {
@@ -40,7 +40,7 @@ List.prototype = {
   },
   generateList: function(title) {
     let listTitle = {'title': title};
-    fetch(API_URL, {
+    fetch(API_URL + '/shop_lists', {
       method: "POST", 
       body: JSON.stringify(listTitle),
       headers: new Headers({'content-type': 'application/json'})
@@ -78,7 +78,7 @@ List.prototype = {
   addNewItem: function(name, status) {
     let listWrapper = document.getElementById('list-wrapper'),
         listItem = {'name': name, 'status': status};
-    fetch(API_URL + '/' + currentList.id + '/items', {
+    fetch(API_URL + '/shop_lists' + '/' + currentList.id + '/items', {
       method: "POST", 
       body: JSON.stringify(listItem),
       headers: new Headers({'content-type': 'application/json'})
@@ -96,7 +96,7 @@ List.prototype = {
   },
   updateListItem: function(name, status, id) {
     let listItem = {'name': name, 'status': status};
-    fetch(API_URL + '/' + currentList.id + '/items/' + id, {
+    fetch(API_URL + '/shop_lists' + '/' + currentList.id + '/items/' + id, {
       method: "PUT", 
       body: JSON.stringify(listItem),
       headers: new Headers({'content-type': 'application/json'})
@@ -153,12 +153,20 @@ function generateNewItem({name, status, id}) {
 }
 
 function getAllUserLists() {
-  const link = API_URL;
-  fetch(link, {mode: 'cors'})
+  const link = API_URL + '/shop_lists',
+        token = getCookie('yourList.token')[0].split('=')[1]
+
+  fetch(link, {
+    mode: 'cors',
+    headers: new Headers({
+        'content-type': 'application/json',
+        'authorization': token
+    })
+  })
     .then(function(response) {
       if (!response.ok) {
         if (response.statusText == 'Unauthorized') {
-          router.goToRoute('sign_in');
+          window.location.href = ORIGIN_URL + '/#sign_in';
           return false;
         }
         throw Error(response.statusText);
@@ -198,12 +206,90 @@ function insertLists(lists) {
   }
 }
 
+function setCookie(cookieObj, name) {
+  document.cookie = name + '=' + cookieObj.token + 'path=/; expires=' + cookieObj.exp;
+}
+
+function getCookie(name) {
+  return document.cookie.split(';').filter(cookie_item => { return cookie_item.match(name) });
+}
+
+function registerUser() {
+  let email = document.getElementById('email-input').value,
+      userName = document.getElementById('username-input').value,
+      pass = document.getElementById('password-input').value,
+      repass = document.getElementById('repassword-input'),
+      userData = { "username": userName, "email": email, "password": pass, "password_confirmation": repass.value };
+      console.log(userData);
+  if(pass != repass.value) {
+    repass.classList.add('error');
+    return false;
+  }
+  fetch(API_URL + '/users' , {
+    method: "POST", 
+    body: JSON.stringify(userData),
+    headers: new Headers({'content-type': 'application/json'})
+  }).then(response => {
+    if (!response.ok) {
+      throw Error(response.statusText);
+    }
+    return response.json();
+  }).then(user => {
+    loginUser();
+  }).catch(error => {
+    console.log(error);
+  });
+}
+
+function loginUser() {
+  let email = document.getElementById('email-input').value,
+      pass = document.getElementById('password-input').value,
+      userData = { "email": email, "password": pass };
+  fetch(API_URL + '/auth/login' , {
+    method: "POST", 
+    body: JSON.stringify(userData),
+    headers: new Headers({'content-type': 'application/json'})
+  }).then(response => {
+    if (!response.ok) {
+      throw Error(response.statusText);
+    }
+    return response.json();
+  }).then(token => {
+    console.log(token);
+    setCookie(token, 'yourList.token');
+    window.location.href = ORIGIN_URL;
+  }).catch(error => {
+    console.log(error);
+  });
+}
+
+
+let homepage = function() {
+  console.log('home');
+  getAllUserLists();
+}
+
+let list = function() {
+  console.log('list');
+  currentList = new List(listId);
+}
+
+let sign_in = function() {
+  console.log('sign_in');
+}
+
+let sign_up = function() {
+  console.log('sign_up');
+}
+
 let router = new Router([
-  new Route('home', 'home.html', true),
-  new Route('list', 'list.html'),
-  new Route('login', 'sign_in.html'),
-  new Route('sign_up', 'sign_up.html')
+  new Route('home', 'home.html', homepage, true),
+  new Route('list', 'list.html', list),
+  new Route('sign_in', 'sign_in.html', sign_in),
+  new Route('sign_up', 'sign_up.html', sign_up)
 ]);
+
+
 
 document.body.addEventListener("click", ({target}) => {
   if(target == document.querySelector('.copy-link-btn')) {

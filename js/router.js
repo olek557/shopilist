@@ -25,7 +25,7 @@ Router.prototype.hasChanged = function() {
     this.routes.forEach((route) => {
       if(route.isActiveRoute(path)) {
         this.goToRoute(route.htmlName);
-        currentList = new List(listId);
+        route.initFunction();
       }
     });
   }
@@ -33,7 +33,7 @@ Router.prototype.hasChanged = function() {
     this.routes.forEach((route) => {
       if(route.defaultRoute) {
         this.goToRoute(route.htmlName);
-        getAllUserLists();
+        route.initFunction();
       }
     });
   }

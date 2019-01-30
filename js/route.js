@@ -1,12 +1,13 @@
 'use strict'
 
-function Route(name, htmlName, defaultRoute) {
-  this.constructor(name, htmlName, defaultRoute);
+function Route(name, htmlName, initFunction, defaultRoute) {
+  this.constructor(name, htmlName, initFunction, defaultRoute);
 }
 
-Route.prototype.constructor = function(name, htmlName, defaultRoute) {
+Route.prototype.constructor = function(name, htmlName, initFunction, defaultRoute) {
   this.name = name;
   this.htmlName = htmlName;
+  this.initFunction = initFunction;
   this.defaultRoute = defaultRoute;
 }
 
