@@ -21,8 +21,16 @@ List.prototype = {
     }
   },
   getList: function(id) {
-    const link = API_URL + '/shop_lists' + '/' + id;
-    fetch(link, {mode: 'cors'})
+    const link = API_URL + '/shop_lists' + '/' + id,
+          token = getCookie('yourList.token')[0].split('=')[1];
+
+    fetch(link, {
+      mode: 'cors',
+      headers: new Headers({
+          'content-type': 'application/json',
+          'authorization': token
+      })
+    })
       .then(function(response) {
         if (!response.ok) {
           throw Error(response.statusText);
@@ -39,11 +47,15 @@ List.prototype = {
     );
   },
   generateList: function(title) {
-    let listTitle = {'title': title};
+    let listTitle = {'title': title},
+        token = getCookie('yourList.token')[0].split('=')[1];
     fetch(API_URL + '/shop_lists', {
       method: "POST", 
       body: JSON.stringify(listTitle),
-      headers: new Headers({'content-type': 'application/json'})
+      headers: new Headers({
+        'content-type': 'application/json',
+        'authorization': token
+      })
     }).then((response) => {
       if (!response.ok) {
         throw Error(response.statusText);
@@ -77,11 +89,15 @@ List.prototype = {
   },
   addNewItem: function(name, status) {
     let listWrapper = document.getElementById('list-wrapper'),
-        listItem = {'name': name, 'status': status};
+        listItem = {'name': name, 'status': status},
+        token = getCookie('yourList.token')[0].split('=')[1];
     fetch(API_URL + '/shop_lists' + '/' + currentList.id + '/items', {
       method: "POST", 
       body: JSON.stringify(listItem),
-      headers: new Headers({'content-type': 'application/json'})
+      headers: new Headers({
+        'content-type': 'application/json',
+        'authorization': token
+      })
     }).then(response => {
       if (!response.ok) {
         throw Error(response.statusText);
@@ -95,11 +111,15 @@ List.prototype = {
     });
   },
   updateListItem: function(name, status, id) {
-    let listItem = {'name': name, 'status': status};
+    let listItem = {'name': name, 'status': status},
+        token = getCookie('yourList.token')[0].split('=')[1];
     fetch(API_URL + '/shop_lists' + '/' + currentList.id + '/items/' + id, {
       method: "PUT", 
       body: JSON.stringify(listItem),
-      headers: new Headers({'content-type': 'application/json'})
+      headers: new Headers({
+        'content-type': 'application/json',
+        'authorization': token
+      })
     });
   }
 }
@@ -207,7 +227,7 @@ function insertLists(lists) {
 }
 
 function setCookie(cookieObj, name) {
-  document.cookie = name + '=' + cookieObj.token + 'path=/; expires=' + cookieObj.exp;
+  document.cookie = name + '=' + cookieObj.token + '; path=/; expires=' + cookieObj.exp;
 }
 
 function getCookie(name) {
@@ -271,6 +291,8 @@ let homepage = function() {
 
 let list = function() {
   console.log('list');
+  let fullPath = window.location.hash.replace('#', ''),
+      listId = fullPath.split(':')[1];
   currentList = new List(listId);
 }
 
