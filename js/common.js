@@ -1,5 +1,7 @@
 'use strict'
 
+import default fetchList from './api.js';
+
 // const API_URL = 'http://68.183.12.15:3000/shop_lists',
 const API_URL = 'http://127.0.0.1:3000',
       ORIGIN_URL = window.location.origin;
@@ -174,7 +176,7 @@ function generateNewItem({name, status, id}) {
 
 function getAllUserLists() {
   const link = API_URL + '/shop_lists',
-        token = getCookie('yourList.token')[0].split('=')[1]
+        token = getCookie('yourList.token')[0].split('=')[1];
 
   fetch(link, {
     mode: 'cors',
@@ -195,7 +197,9 @@ function getAllUserLists() {
      })
     .then((lists) => {
       allLists = lists;
-      insertLists(lists);
+      if(lists.length > 0) {
+        insertLists(lists);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -285,7 +289,6 @@ function loginUser() {
 
 
 let homepage = function() {
-  console.log('home');
   getAllUserLists();
 }
 
@@ -324,3 +327,5 @@ document.body.addEventListener("click", ({target}) => {
     document.body.removeChild(dummy);
   }
 });
+
+fetchList();
