@@ -1,7 +1,5 @@
 'use strict'
 
-import default fetchList from './api.js';
-
 // const API_URL = 'http://68.183.12.15:3000/shop_lists',
 const API_URL = 'http://127.0.0.1:3000',
       ORIGIN_URL = window.location.origin;
