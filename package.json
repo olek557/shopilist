@@ -19,6 +19,11 @@
   "devDependencies": {
     "gulp": "^4.0.0",
     "gulp-sass": "^4.0.2",
-    "node-sass": "^4.11.0"
+    "node-sass": "^4.11.0",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3"
+  },
+  "dependencies": {
+    "normalize.css": "^8.0.1"
   }
 }

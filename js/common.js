@@ -1,7 +1,7 @@
 'use strict'
 
-// const API_URL = 'http://68.183.12.15:3000/shop_lists',
-const API_URL = 'http://127.0.0.1:3000',
+const API_URL = 'http://68.183.12.15:3000/shop_lists',
+// const API_URL = 'http://127.0.0.1:3000',
       ORIGIN_URL = window.location.origin;
 let currentList,
     allLists;
@@ -111,14 +111,14 @@ List.prototype = {
     });
   },
   updateListItem: function(name, status, id) {
-    let listItem = {'name': name, 'status': status},
-        token = getCookie('yourList.token')[0].split('=')[1];
+    let listItem = {'name': name, 'status': status};
+        // token = getCookie('yourList.token')[0].split('=')[1];
     fetch(API_URL + '/shop_lists' + '/' + currentList.id + '/items/' + id, {
       method: "PUT", 
       body: JSON.stringify(listItem),
       headers: new Headers({
-        'content-type': 'application/json',
-        'authorization': token
+        'content-type': 'application/json'
+        // 'authorization': token
       })
     });
   }
@@ -173,14 +173,14 @@ function generateNewItem({name, status, id}) {
 }
 
 function getAllUserLists() {
-  const link = API_URL + '/shop_lists',
-        token = getCookie('yourList.token')[0].split('=')[1];
+  const link = API_URL + '/shop_lists';
+        // token = getCookie('yourList.token')[0].split('=')[1];
 
   fetch(link, {
     mode: 'cors',
     headers: new Headers({
-        'content-type': 'application/json',
-        'authorization': token
+        'content-type': 'application/json'
+        // 'authorization': token
     })
   })
     .then(function(response) {
