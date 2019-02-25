@@ -5,22 +5,22 @@ const API_URL = 'http://68.183.12.15:3000/shop_lists',
 let currentList,
     allLists;
 
-function List(id, title) {
-  this.constructor(id, title);
+function List(uuid, title) {
+  this.constructor(uuid, title);
 }
 
 List.prototype = {
   listItems: {},
-  constructor: function(id, title) {
-    if(id) {
-      this.getList(id);
+  constructor: function(uuid, title) {
+    if(uuid) {
+      this.getList(uuid);
     }
     else {
       this.generateList(title);
     }
   },
-  getList: function(id) {
-    const link = API_URL + '/' + id;
+  getList: function(uuid) {
+    const link = API_URL + '/' + uuid;
     fetch(link, {mode: 'cors'})
       .then(function(response) {
         if (!response.ok) {
@@ -50,7 +50,11 @@ List.prototype = {
       return response.json();
     }).then(list => {
       this.restructurisingListObject(list);
-      window.location.href = ORIGIN_URL + '/#list:'+ list.id;
+      let lists = JSON.parse(localStorage.getItem('shopilist_userLists'));
+      console.log(lists);
+      lists.listsUUID.push(list.uuid);
+      localStorage.setItem('shopilist_userLists', JSON.stringify(lists));
+      window.location.href = ORIGIN_URL + '/#list:'+ list.uuid;
     })
     .catch(error => {
       console.log(error);
@@ -62,6 +66,7 @@ List.prototype = {
     this.updateAt = listObject.updated_at;
     this.title = listObject.title;
     this.id = listObject.id;
+    this.uuid = listObject.uuid;
     this.list = listObject.items;
     this.listFullObj= listObject;
   },
@@ -77,7 +82,7 @@ List.prototype = {
   addNewItem: function(name, status) {
     let listWrapper = document.getElementById('list-wrapper'),
         listItem = {'name': name, 'status': status};
-    fetch(API_URL + '/' + currentList.id + '/items', {
+    fetch(API_URL + '/' + currentList.uuid + '/items', {
       method: "POST", 
       body: JSON.stringify(listItem),
       headers: new Headers({'content-type': 'application/json'})
@@ -95,7 +100,7 @@ List.prototype = {
   },
   updateListItem: function(name, status, id) {
     let listItem = {'name': name, 'status': status};
-    fetch(API_URL + '/' + currentList.id + '/items/' + id, {
+    fetch(API_URL + '/' + currentList.uuid + '/items/' + id, {
       method: "PUT", 
       body: JSON.stringify(listItem),
       headers: new Headers({'content-type': 'application/json'})
@@ -152,7 +157,59 @@ function generateNewItem({name, status, id}) {
 }
 
 function getAllUserLists() {
-  const link = API_URL;
+  let userListUUID = JSON.parse(localStorage.getItem('shopilist_userLists')).listsUUID;
+  if(userListUUID) {
+    console.log(userListUUID);
+    let stateCheck = setInterval(() => {
+      if (document.readyState === 'complete') {
+        console.log('here');
+        insertLists(userListUUID);
+        clearInterval(stateCheck);
+        // document ready
+      }
+    }, 100);
+  }
+  else {
+    let lists = {
+      listsUUID: []
+    };
+    localStorage.setItem('shopilist_userLists', JSON.stringify(lists));
+  }
+  // const link = API_URL;
+  // fetch(link, {mode: 'cors'})
+  //   .then(function(response) {
+  //     if (!response.ok) {
+  //       throw Error(response.statusText);
+  //     }
+  //     return response.json();
+  //    })
+  //   .then((lists) => {
+  //     allLists = lists;
+  //     insertLists(lists);
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //   }
+  // );
+
+}
+
+function insertLists(listsID) {
+
+  let listsWrapper = document.getElementById('lists-wrapper');
+  let ul = document.createElement('ul');
+  ul.classList.add('list', 'list--links');
+  ul.setAttribute('id', 'lists-element');
+  listsWrapper.append(ul);
+  
+  listsID.forEach(listId => {
+    insertListItem(listId);
+  });
+
+}
+
+function insertListItem(listId) {
+  const link = API_URL + '/' + listId;
   fetch(link, {mode: 'cors'})
     .then(function(response) {
       if (!response.ok) {
@@ -160,36 +217,28 @@ function getAllUserLists() {
       }
       return response.json();
      })
-    .then((lists) => {
-      allLists = lists;
-      insertLists(lists);
+    .then((list) => {
+      let listsElement = document.getElementById('lists-element');
+      let li = document.createElement('li'),
+      link = document.createElement('a'),
+      linkAdditional = document.createElement('span');
+      li.classList.add('list__item');
+      link.classList.add('link');
+      linkAdditional.classList.add('link__additional');
+      link.innerHTML = list.title;
+      link.setAttribute('href', '/#list:' + list.uuid);
+
+      linkAdditional.innerHTML = '(' +(new Date(list.created_at)).toLocaleDateString() + ')';
+      li.append(link, linkAdditional);
+      listsElement.append(li);
     })
     .catch((error) => {
       console.log(error);
     }
   );
+
 }
 
-function insertLists(lists) {
-  let listsWrapper = document.getElementById('lists-wrapper'),
-      ul = document.createElement('ul');
-      ul.classList.add('list', 'list--links');
-  lists.forEach(list => {
-    let li = document.createElement('li'),
-        link = document.createElement('a'),
-        linkAdditional = document.createElement('span');
-    li.classList.add('list__item');
-    link.classList.add('link');
-    linkAdditional.classList.add('link__additional');
-    link.innerHTML = list.title;
-    link.setAttribute('href', '/#list:' + list.id);
-
-    linkAdditional.innerHTML = '(' +(new Date(list.created_at)).toLocaleDateString() + ')';
-    li.append(link, linkAdditional);
-    ul.append(li);
-  });
-  listsWrapper.append(ul);
-}
 
 let router = new Router([
   new Route('home', 'home.html', true),
