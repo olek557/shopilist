@@ -157,13 +157,12 @@ function generateNewItem({name, status, id}) {
 }
 
 function getAllUserLists() {
-  let userListUUID = JSON.parse(localStorage.getItem('shopilist_userLists')).listsUUID;
+  let userListUUID = localStorage.getItem('shopilist_userLists');
   if(userListUUID) {
-    console.log(userListUUID);
     let stateCheck = setInterval(() => {
       if (document.readyState === 'complete') {
         console.log('here');
-        insertLists(userListUUID);
+        insertLists(JSON.parse(userListUUID).listsUUID);
         clearInterval(stateCheck);
         // document ready
       }
